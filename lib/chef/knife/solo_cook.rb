@@ -259,7 +259,7 @@ class Chef
       end
 
       def check_chef_version
-        ui.msg "Checking Chef version YOLO..."
+        ui.msg "Checking Chef version..."
         unless chef_version_satisfies? CHEF_VERSION_CONSTRAINT
           raise "Couldn't find Chef #{CHEF_VERSION_CONSTRAINT} on #{host}. Please run `knife solo prepare #{ssh_args}` to ensure Chef is installed and up to date."
         end
