@@ -48,6 +48,10 @@ module KnifeSolo
       Pathname.new(@name_args[1] || "#{nodes_path}/#{node_name}.json")
     end
 
+    def node_dna
+      Pathname.new('/tmp/chef/dna.json')
+    end
+
     def node_name
       # host method must be defined by the including class
       config[:chef_node_name] || host
@@ -71,6 +75,34 @@ module KnifeSolo
           f.print attributes.merge(run_list).merge(environment).to_json
         end
       end
+      generate_node_dna
+    end
+
+    def generate_node_dna
+        FileUtils.mkdir_p(node_dna.dirname)
+        node_config_json = JSON.parse(File.read(node_config))
+        node = Chef::Node.json_create(node_config_json)
+
+        # Support attributes which are not namespaced with precedence keys
+        optional_attrs = node_config_json
+        optional_attrs.tap { |a|
+          a.delete('name')
+          a.delete('chef_environment')
+          a.delete('json_class')
+          a.delete('automatic')
+          a.delete('normal')
+          a.delete('chef_type')
+          a.delete('default')
+          a.delete('override')
+          a.delete('run_list')
+        }
+        node.default_attrs = optional_attrs.merge(node.default_attrs)
+
+        File.open(node_dna, 'w') do |f|
+          dna_hash = node.attributes.to_hash
+          dna_hash['run_list'] = JSON.parse(node.run_list.to_json)
+          f.print JSON.pretty_generate(dna_hash)
+        end
     end
 
   end
