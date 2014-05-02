@@ -39,8 +39,8 @@ module KnifeSolo
       end
     end
 
-    def node_dna
-      @node_dna_path ||= ""
+    def node_dna_file
+      @node_dna_file ||= ":-("
     end
 
     def nodes_path
@@ -86,16 +86,16 @@ module KnifeSolo
       node = Chef::Node.json_create(get_node_config_json)
       node.default_attrs = get_non_namespaced_attributes.merge(node.default_attrs)
 
-      dna_file = Tempfile.new(['dna', '.json'])
-      @node_dna_path = dna_file.path
+      @node_dna_file = Tempfile.new(['dna', '.json'])
 
       dna_hash = node.attributes.to_hash
       dna_hash['run_list'] = JSON.parse(node.run_list.to_json)
-      dna_file.write(JSON.pretty_generate(dna_hash))
-      dna_file.close
-      puts dna_file.path.inspect
+      @node_dna_file.write(JSON.pretty_generate(dna_hash))
 
-      exit # TODO remove debug
+      @node_dna_file.rewind
+      puts @node_dna_file.read
+
+
     end
 
     def get_non_namespaced_attributes
