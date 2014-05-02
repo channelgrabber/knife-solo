@@ -39,6 +39,10 @@ module KnifeSolo
       end
     end
 
+    def node_dna
+      @node_dna_path ||= ""
+    end
+
     def nodes_path
       path = Chef::Config[:node_path]
       path && File.exist?(path) ? path : 'nodes'
@@ -50,10 +54,6 @@ module KnifeSolo
 
     def get_node_config_json
       JSON.parse(File.read(node_config))
-    end
-
-    def node_dna
-      Pathname.new('/tmp/chef/dna.json')
     end
 
     def node_name
@@ -83,17 +83,19 @@ module KnifeSolo
     end
 
     def generate_node_dna
-        FileUtils.mkdir_p(node_dna.dirname)
-        node = Chef::Node.json_create(get_node_config_json)
+      node = Chef::Node.json_create(get_node_config_json)
+      node.default_attrs = get_non_namespaced_attributes.merge(node.default_attrs)
 
-        node.default_attrs = get_non_namespaced_attributes.merge(node.default_attrs)
+      dna_file = Tempfile.new(['dna', '.json'])
+      @node_dna_path = dna_file.path
 
-        File.open(node_dna, 'w') do |f|
-          dna_hash = node.attributes.to_hash
-          dna_hash['run_list'] = JSON.parse(node.run_list.to_json)
-          f.print JSON.pretty_generate(dna_hash)
-        end
-        exit # TODO remove debug
+      dna_hash = node.attributes.to_hash
+      dna_hash['run_list'] = JSON.parse(node.run_list.to_json)
+      dna_file.write(JSON.pretty_generate(dna_hash))
+      dna_file.close
+      puts dna_file.path.inspect
+
+      exit # TODO remove debug
     end
 
     def get_non_namespaced_attributes

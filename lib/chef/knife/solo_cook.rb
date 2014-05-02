@@ -113,7 +113,7 @@ class Chef
         cookbook_paths.each_with_index do |path, i|
           upload_to_provision_path(path.to_s, "/cookbooks-#{i + 1}", 'cookbook_path')
         end
-        upload_to_provision_path(node_dna.to_s, 'dna.json')
+        upload_to_provision_path(@node_dna_path, 'dna.json')
         upload_to_provision_path(nodes_path, 'nodes')
         upload_to_provision_path(:role_path, 'roles')
         upload_to_provision_path(:data_bag_path, 'data_bags')
@@ -257,7 +257,7 @@ class Chef
       end
 
       def check_chef_version
-        ui.msg "Checking Chef version..."
+        ui.msg "Checking Chef version YOLO..."
         unless chef_version_satisfies? CHEF_VERSION_CONSTRAINT
           raise "Couldn't find Chef #{CHEF_VERSION_CONSTRAINT} on #{host}. Please run `knife solo prepare #{ssh_args}` to ensure Chef is installed and up to date."
         end
