@@ -119,7 +119,9 @@ class Chef
         cookbook_paths.each_with_index do |path, i|
           upload_to_provision_path(path.to_s, "/cookbooks-#{i + 1}", 'cookbook_path')
         end
-        upload_to_provision_path(node_config.to_s, 'dna.json')
+        upload_to_provision_path(node_dna_file.path, 'dna.json')
+        node_dna_file.close
+        node_dna_file.unlink
         upload_to_provision_path(nodes_path, 'nodes')
         upload_to_provision_path(:role_path, 'roles')
         upload_to_provision_path(:data_bag_path, 'data_bags')
