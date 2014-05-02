@@ -50,6 +50,7 @@ module KnifeSolo
 
     def node_dna
       Pathname.new('/tmp/chef/dna.json')
+
     end
 
     def node_name
@@ -84,18 +85,18 @@ module KnifeSolo
         node = Chef::Node.json_create(node_config_json)
 
         # Support attributes which are not namespaced with precedence keys
-        optional_attrs = node_config_json
-        optional_attrs.tap { |a|
-          a.delete('name')
-          a.delete('chef_environment')
-          a.delete('json_class')
-          a.delete('automatic')
-          a.delete('normal')
-          a.delete('chef_type')
-          a.delete('default')
-          a.delete('override')
-          a.delete('run_list')
-        }
+        optional_attributes = node_config_json
+        %w(
+          name
+          chef_environment
+          json_class
+          automatic
+          normal
+          chef_type
+          default
+          override
+          run_list
+        ).each { |k| optional_attributes.delete k }
         node.default_attrs = optional_attrs.merge(node.default_attrs)
 
         File.open(node_dna, 'w') do |f|
@@ -103,6 +104,7 @@ module KnifeSolo
           dna_hash['run_list'] = JSON.parse(node.run_list.to_json)
           f.print JSON.pretty_generate(dna_hash)
         end
+        exit # TODO remove debug
     end
 
   end
