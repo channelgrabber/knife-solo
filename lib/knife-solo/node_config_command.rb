@@ -87,15 +87,9 @@ module KnifeSolo
       node.default_attrs = get_non_namespaced_attributes.merge(node.default_attrs)
 
       @node_dna_file = Tempfile.new(['dna', '.json'])
-
       dna_hash = node.attributes.to_hash
       dna_hash['run_list'] = JSON.parse(node.run_list.to_json)
       @node_dna_file.write(JSON.pretty_generate(dna_hash))
-
-      @node_dna_file.rewind
-      puts @node_dna_file.read
-
-
     end
 
     def get_non_namespaced_attributes
