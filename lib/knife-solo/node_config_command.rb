@@ -40,7 +40,7 @@ module KnifeSolo
     end
 
     def node_dna_file
-      @node_dna_file ||= ":-("
+      @node_dna_file ||= nil
     end
 
     def nodes_path
@@ -90,6 +90,7 @@ module KnifeSolo
       dna_hash = node.attributes.to_hash
       dna_hash['run_list'] = JSON.parse(node.run_list.to_json)
       @node_dna_file.write(JSON.pretty_generate(dna_hash))
+      @node_dna_file.rewind
     end
 
     def get_non_namespaced_attributes
