@@ -48,9 +48,12 @@ module KnifeSolo
       Pathname.new(@name_args[1] || "#{nodes_path}/#{node_name}.json")
     end
 
+    def get_node_config_json
+      JSON.parse(File.read(node_config))
+    end
+
     def node_dna
       Pathname.new('/tmp/chef/dna.json')
-
     end
 
     def node_name
@@ -81,23 +84,9 @@ module KnifeSolo
 
     def generate_node_dna
         FileUtils.mkdir_p(node_dna.dirname)
-        node_config_json = JSON.parse(File.read(node_config))
-        node = Chef::Node.json_create(node_config_json)
+        node = Chef::Node.json_create(get_node_config_json)
 
-        # Support attributes which are not namespaced with precedence keys
-        optional_attributes = node_config_json
-        %w(
-          name
-          chef_environment
-          json_class
-          automatic
-          normal
-          chef_type
-          default
-          override
-          run_list
-        ).each { |k| optional_attributes.delete k }
-        node.default_attrs = optional_attrs.merge(node.default_attrs)
+        node.default_attrs = get_non_namespaced_attributes.merge(node.default_attrs)
 
         File.open(node_dna, 'w') do |f|
           dna_hash = node.attributes.to_hash
@@ -105,6 +94,22 @@ module KnifeSolo
           f.print JSON.pretty_generate(dna_hash)
         end
         exit # TODO remove debug
+    end
+
+    def get_non_namespaced_attributes
+      node_config_json = get_node_config_json
+      %w(
+        name
+        chef_environment
+        json_class
+        automatic
+        normal
+        chef_type
+        default
+        override
+        run_list
+      ).each { |k| node_config_json.delete k }
+      node_config_json
     end
 
   end
