@@ -106,7 +106,7 @@ Under the hood it first calls +knife solo prepare+ and then +knife solo cook+ wi
 
 ==== Integration with knife bootstrap
 
-knife-solo also integrates with <tt>knife bootstrap</tt> by adding +--solo+ command line option and +knife[:solo]+ configuration parameter to it. When requested, "knife solo bootrap" is used instead of the normal template based chef-client bootstrap. This is especially useful with other knife plugins like {knife-ec2}[https://github.com/opscode/knife-ec2] that invoke "knife bootstrap" after creating an server instance. Even if these plugins do not have the "--solo" option, you can put <tt>knife[:solo] = true</tt> in knife.rb.
+knife-solo also integrates with <tt>knife bootstrap</tt> by adding +--solo+ command line option and +knife[:solo]+ configuration parameter to it. When requested, "knife solo bootstrap" is used instead of the normal template based chef-client bootstrap. This is especially useful with other knife plugins like {knife-ec2}[https://github.com/opscode/knife-ec2] that invoke "knife bootstrap" after creating an server instance. Even if these plugins do not have the "--solo" option, you can put <tt>knife[:solo] = true</tt> in knife.rb.
 
 === Clean command
 
@@ -134,7 +134,10 @@ The cook command will work on Windows node if you meet the following howto:
 
 ==== Cook
 
-- cook should work as expected automatically, if you use cygwin rsync
+- cook should work as expected automatically, if you use cygwin rsync. If you're using MinGW / Git Bash, or you have a non-standard <tt>cygdrive</tt> setting, you can set that in <tt>.chef/knife.rb</tt>:
+
+    knife[:cygdrive_prefix_local] = '/cygdrive'  # prefix for your local machine, set to empty string for MinGW
+    knife[:cygdrive_prefix_remote] = '/cygdrive' # prefix on the remote windows node
 
 == DEVELOPMENT
 

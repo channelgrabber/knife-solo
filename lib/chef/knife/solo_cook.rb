@@ -53,6 +53,10 @@ class Chef
         :long        => '--no-librarian',
         :description => 'Skip librarian-chef install'
 
+      option :secret_file,
+        :long        => '--secret-file SECRET_FILE',
+        :description => 'A file containing the secret key used to encrypt data bag item values'
+
       option :why_run,
         :short       => '-W',
         :long        => '--why-run',
@@ -125,7 +129,7 @@ class Chef
         upload_to_provision_path(nodes_path, 'nodes')
         upload_to_provision_path(:role_path, 'roles')
         upload_to_provision_path(:data_bag_path, 'data_bags')
-        upload_to_provision_path(:encrypted_data_bag_secret, 'data_bag_key')
+        upload_to_provision_path(config[:secret_file] || :encrypted_data_bag_secret, 'data_bag_key')
         upload_to_provision_path(:environment_path, 'environments')
       end
 
@@ -146,7 +150,7 @@ class Chef
       end
 
       def proxy_setting_keys
-        [:http_proxy, :https_proxy, :http_proxy_user, :http_proxy_pass, :no_proxy]
+        [:http_proxy, :https_proxy, :http_proxy_user, :http_proxy_pass, :https_proxy_user, :https_proxy_pass, :no_proxy]
       end
 
       def proxy_settings
@@ -169,20 +173,20 @@ class Chef
         @chefignore ||= ::Chef::Cookbook::Chefignore.new("./")
       end
 
-      # cygwin rsync path must be adjusted to work
-      def adjust_rsync_path(path)
+      # path must be adjusted to work on windows
+      def adjust_rsync_path(path, path_prefix)
         path_s = path.to_s
-        path_s.gsub(/^(\w):/) { "/cygdrive/#{$1}" }
+        path_s.gsub(/^(\w):/) { path_prefix + "/#{$1}" }
       end
 
       def adjust_rsync_path_on_node(path)
         return path unless windows_node?
-        adjust_rsync_path(path)
+        adjust_rsync_path(path, config_value(:cygdrive_prefix_remote, '/cygdrive'))
       end
 
       def adjust_rsync_path_on_client(path)
         return path unless windows_client?
-        adjust_rsync_path(path)
+        adjust_rsync_path(path, config_value(:cygdrive_prefix_local, '/cygdrive'))
       end
 
       def rsync_debug
@@ -298,12 +302,13 @@ class Chef
       end
 
       def cook
-        ui.msg "Running Chef..."
         cmd = "sudo chef-solo -c #{provisioning_path}/solo.rb -j #{provisioning_path}/dna.json"
         cmd << " -l debug" if debug?
         cmd << " -N #{config[:chef_node_name]}" if config[:chef_node_name]
         cmd << " -W" if config[:why_run]
         cmd << " -o #{config[:override_runlist]}" if config[:override_runlist]
+
+        ui.msg "Running Chef: #{cmd}"
 
         result = stream_command cmd
         raise "chef-solo failed. See output above." unless result.success?

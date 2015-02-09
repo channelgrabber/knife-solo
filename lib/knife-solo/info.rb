@@ -1,6 +1,6 @@
 module KnifeSolo
   def self.version
-    '0.4.2.ChannelGrabber.1'
+    '0.5.0.ChannelGrabber.1'
   end
 
   def self.post_install_message
